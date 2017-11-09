@@ -12,8 +12,7 @@
     <div id="app" class="container">
         <h2>
             <span>Pomodoro</span>
-            <button @click="start()"><i class="glyphicon glyphicon-play"></i></button>
-            <button @click="pause()"><i class="glyphicon glyphicon-pause"></i></button>
+            <button @click="startOrPause()"><i class="glyphicon" :class="startPauseButtonStyle"></i></button>
             <button @click="stop()"><i class="glyphicon glyphicon-stop"></i></button>
         </h2>
         <div class="well">
@@ -58,6 +57,14 @@
             timestamp: 0
         },
         methods: {
+            // If the clock is running, pause it, if it's already paused, continues it
+            startOrPause: function () {
+                if (this.pomodoroState == POMODORO_STATES.STOP || this.pomodoroState == POMODORO_STATES.PAUSE) {
+                    this.start();
+                } else if (this.pomodoroState == POMODORO_STATES.REST || this.pomodoroState == POMODORO_STATES.WORK) {
+                    this.pause();
+                }
+            },
             // Initializes the whole thing.
             start: function () {
 
@@ -66,7 +73,7 @@
                 };
 
                 this._tick();
-                this.interval = setInterval(this._tick, 1000);
+                this.interval = setInterval(this._tick, 10);
             },
             // Runs the whole thing.
             _tick : function () {
@@ -100,7 +107,7 @@
                 }
             },
             pause: function () {
-                if (this.pomodoroState == POMODORO_STATES.WORK || this.pomodoroState == POMODORO_STATES.PAUSE) {
+                if (this.pomodoroState == POMODORO_STATES.WORK || this.pomodoroState == POMODORO_STATES.REST) {
                     clearInterval(this.interval);
                     this.pomodoroState = POMODORO_STATES.PAUSE;
                 }                
@@ -137,6 +144,13 @@
                 let auxMin = this.minute < 10 ? ('0' + this.minute) : this.minute;
                 let auxSec = this.second < 10 ? ('0' + this.second) : this.second;
                 return auxMin + ':' + auxSec;
+            },
+            startPauseButtonStyle: function (){
+                if (this.pomodoroState == POMODORO_STATES.STOP || this.pomodoroState == POMODORO_STATES.PAUSE) {
+                    return 'glyphicon-play';
+                } else if (this.pomodoroState == POMODORO_STATES.REST || this.pomodoroState == POMODORO_STATES.WORK) {
+                    return 'glyphicon-pause';
+                }
             }
         }   
     });
