@@ -13,10 +13,12 @@
         <h2>
             <span>Pomodoro</span>
             <button @click="start()"><i class="glyphicon glyphicon-play"></i></button>
+            <button @click="pause()"><i class="glyphicon glyphicon-pause"></i></button>
+            <button @click="stop()"><i class="glyphicon glyphicon-stop"></i></button>
         </h2>
         <div class="well">
             <div class="pomorodo-timer">
-                <span>{{ minute }}</span> : <span>{{ second }}</span>  
+                <span>{{ formatedTime }}</span>  
             </div>
         </div>
         <h1>{{ statusDescription }}</h1>
@@ -30,7 +32,9 @@
     // Set constants we can work with.
     const POMODORO_STATES = {
         WORK: 'work',
-        REST: 'rest'
+        REST: 'rest',
+        STOP: 'stop',
+        PAUSE: 'pause'
     }
 
     // The user will be working for this amount of time.
@@ -49,13 +53,18 @@
             // Seconds start at zero.
             second: 0,
             // The initial state is working.
-            pomodoroState: POMODORO_STATES.WORK,
+            pomodoroState: POMODORO_STATES.STOP,
 
             timestamp: 0
         },
         methods: {
             // Initializes the whole thing.
             start: function () {
+
+                if (this.pomodoroState !== POMODORO_STATES.REST || this.pomodoroState !== POMODORO_STATES.WORK) {
+                    this.pomodoroState = POMODORO_STATES.WORK;
+                };
+
                 this._tick();
                 this.interval = setInterval(this._tick, 1000);
             },
@@ -89,11 +98,45 @@
                 } else {
                     this.minute = RESTING_TIME_LENGTH_IN_MINUTES;
                 }
+            },
+            pause: function () {
+                if (this.pomodoroState == POMODORO_STATES.WORK || this.pomodoroState == POMODORO_STATES.PAUSE) {
+                    clearInterval(this.interval);
+                    this.pomodoroState = POMODORO_STATES.PAUSE;
+                }                
+            },
+            stop: function () {
+                if (this.pomodoroState != POMODORO_STATES.STOP) {
+                    this.pause();
+                    this.minute = WORKING_TIME_LENGTH_IN_MINUTES;
+                    this.second = 0,
+                    this.pomodoroState = POMODORO_STATES.STOP;
+                }
             }
         },
         computed: {
             statusDescription: function () {
-            return this.pomodoroState === POMODORO_STATES.WORK ? 'Work!' : 'Rest..';
+                switch(this.pomodoroState) {
+                    case POMODORO_STATES.PAUSE:
+                        return 'Paused';
+                        break;
+                    case POMODORO_STATES.REST:
+                        return 'Rest';
+                        break;
+                    case POMODORO_STATES.STOP:
+                        return 'Stopped';
+                        break;
+                    case POMODORO_STATES.WORK:
+                        return 'Work';
+                        break;
+                    default:
+                        return 'Undefined';
+                }
+            },
+            formatedTime: function () {
+                let auxMin = this.minute < 10 ? ('0' + this.minute) : this.minute;
+                let auxSec = this.second < 10 ? ('0' + this.second) : this.second;
+                return auxMin + ':' + auxSec;
             }
         }   
     });
